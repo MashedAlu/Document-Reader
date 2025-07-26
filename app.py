@@ -8,6 +8,7 @@ import streamlit as st
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from dotenv import load_dotenv
 import os
+from langchain_community.document_loaders import PyPDFLoader
 
 # Create a Streamlit app
 st.title("AI-Powered Document Q&A")
@@ -16,9 +17,8 @@ st.title("AI-Powered Document Q&A")
 uploaded_file = st.file_uploader("Upload a PDF file", type="pdf")
 # Add this to your Streamlit app instead of importing
 def load_document(file_path):
-    from langchain_community.document_loaders import PyPDFLoader
     loader = PyPDFLoader(file_path)
-    return loader.load_and_split()
+    return loader.load()
 
 
 # If a file is uploaded, create the TextSplitter and vector database
@@ -32,7 +32,13 @@ if uploaded_file :
 
     
     # Load document and split it into chunks for efficient retrieval.
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200
+    )
     chunks = load_document(temp_file)
+    chunks = text_splitter.split_documents(chunks)
+
 
     # Message user that document is being processed with time emoji
     st.write("Processing document... :watch:")
